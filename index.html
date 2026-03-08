@@ -4,36 +4,31 @@
 <head>
 
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <meta name="theme-color" content="#4CAF50">
 
-<title>우리 가족 앱</title>
+<title>오리지날 LEE</title>
 
 <link rel="manifest" href="manifest.json">
 
-
 <style>
-
-/* 전체 */
 
 body{
 margin:0;
 font-family:sans-serif;
 background:#f4f4f4;
 font-size:20px;
+text-align:center;
 }
 
-/* 상단 */
+/* 상단 타이틀 */
 
 header{
 background:#4CAF50;
 color:white;
 padding:22px;
-font-size:32px;
+font-size:34px;
 font-weight:bold;
-text-align:center;
 }
 
 /* 페이지 */
@@ -57,6 +52,30 @@ border-radius:16px;
 margin-bottom:20px;
 box-shadow:0 3px 8px rgba(0,0,0,0.2);
 font-size:24px;
+}
+
+/* 가족 이미지 */
+
+.family-img{
+width:90%;
+max-width:350px;
+border-radius:20px;
+margin:20px auto;
+display:block;
+}
+
+/* 말씀 */
+
+.verse-title{
+font-size:26px;
+font-weight:bold;
+margin-top:10px;
+}
+
+.verse-text{
+font-size:22px;
+margin-top:10px;
+line-height:1.6;
 }
 
 /* 입력 */
@@ -95,8 +114,6 @@ padding:15px 0;
 box-shadow:0 -2px 8px rgba(0,0,0,0.2);
 }
 
-/* 메뉴 버튼 */
-
 .navbtn{
 font-size:32px;
 background:none;
@@ -110,7 +127,7 @@ border:none;
 <body>
 
 <header>
-우리 가족 앱
+오리지날 LEE
 </header>
 
 
@@ -118,8 +135,21 @@ border:none;
 
 <div id="home" class="page active">
 
+<img src="family.jpg" class="family-img">
+
 <div class="card">
-👨‍👩‍👧 우리 가족을 위한 작은 앱
+
+<div class="verse-title">
+📖 오늘의 말씀
+</div>
+
+<div id="verseText" class="verse-text">
+
+여호와는 나의 목자시니 내가 부족함이 없으리로다  
+(시편 23:1)
+
+</div>
+
 </div>
 
 </div>
@@ -198,29 +228,20 @@ border:none;
 
 <div class="navbar">
 
-<button class="navbtn" onclick="showPage('home')">
-🏠
-</button>
+<button class="navbtn" onclick="showPage('home')">🏠</button>
 
-<button class="navbtn" onclick="showPage('pray')">
-🙏
-</button>
+<button class="navbtn" onclick="showPage('pray')">🙏</button>
 
-<button class="navbtn" onclick="showPage('schedule')">
-📅
-</button>
+<button class="navbtn" onclick="showPage('schedule')">📅</button>
 
-<button class="navbtn" onclick="showPage('birthday')">
-🎂
-</button>
+<button class="navbtn" onclick="showPage('birthday')">🎂</button>
 
 </div>
 
 
 <script>
 
-
-/* 페이지 전환 */
+/* 페이지 이동 */
 
 function showPage(page){
 
@@ -233,7 +254,7 @@ document.getElementById(page).classList.add("active")
 }
 
 
-/* 기도 저장 */
+/* 기도 */
 
 function addPray(){
 
@@ -338,8 +359,6 @@ document.getElementById("birthdayList").innerHTML=html
 }
 
 
-/* 앱 시작 */
-
 loadPray()
 loadSchedule()
 loadBirthday()
@@ -348,13 +367,10 @@ loadBirthday()
 /* PWA */
 
 if ('serviceWorker' in navigator) {
-
 navigator.serviceWorker.register('service-worker.js');
-
 }
 
 </script>
-
 
 </body>
 
