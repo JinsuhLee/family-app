@@ -1,46 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#4CAF50">
-
 <title>우리 가족 앱</title>
-
 <link rel="manifest" href="manifest.json">
 
 <style>
 
 body{
-font-family:sans-serif;
 margin:0;
+font-family:sans-serif;
 background:#f4f4f4;
-transition:0.3s;
-}
-
-.dark{
-background:#1e1e1e;
-color:white;
 }
 
 header{
 background:#4CAF50;
 color:white;
-padding:15px;
-font-size:22px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.container{
 padding:20px;
-padding-bottom:90px;
+font-size:26px;
+text-align:center;
 }
 
-.screen{
+.page{
 display:none;
+padding:20px;
+padding-bottom:80px;
 }
 
 .active{
@@ -50,272 +35,232 @@ display:block;
 .card{
 background:white;
 padding:20px;
-border-radius:15px;
-box-shadow:0 3px 10px rgba(0,0,0,0.2);
+border-radius:12px;
 margin-bottom:15px;
+box-shadow:0 2px 5px rgba(0,0,0,0.2);
+font-size:18px;
 }
 
-.dark .card{
-background:#333;
+input{
+width:90%;
+padding:10px;
+font-size:16px;
+margin-top:10px;
 }
 
 button{
-padding:10px 15px;
-border:none;
-border-radius:10px;
-background:#4CAF50;
-color:white;
+margin-top:10px;
+padding:10px 20px;
 font-size:16px;
 }
 
-.bottom-nav{
+.navbar{
 position:fixed;
 bottom:0;
 width:100%;
 background:white;
 display:flex;
 justify-content:space-around;
-border-top:1px solid #ddd;
 padding:10px 0;
+box-shadow:0 -2px 5px rgba(0,0,0,0.2);
 }
 
-.dark .bottom-nav{
-background:#222;
-}
-
-.nav-btn{
+.navbtn{
+font-size:22px;
 background:none;
 border:none;
-font-size:16px;
-}
-
-.gallery img{
-width:100%;
-border-radius:10px;
-margin-top:10px;
-}
-
-textarea{
-width:100%;
-height:100px;
-font-size:16px;
-}
-
-.install{
-background:#2196F3;
-margin-bottom:15px;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<header>
-
-<span>우리 가족 앱</span>
-
-<div>
-
-<button onclick="toggleDark()">🌙</button>
-
-</div>
-
-</header>
-
-<div class="container">
+<header>우리 가족 앱</header>
 
 <!-- 홈 -->
-<div id="home" class="screen active">
+<div id="home" class="page active">
 
-<button id="installBtn" class="install" style="display:none;">📲 앱 설치</button>
-
-<div class="card">
-👋 가족 앱에 오신 것을 환영합니다
-</div>
-
-<div class="card">
-오늘도 행복한 하루 보내세요 😊
-</div>
-
-</div>
-
-<!-- 사진 -->
-<div id="photos" class="screen">
-
-<div class="card">
-📷 가족 사진
-</div>
-
-<input type="file" accept="image/*" onchange="addPhoto(event)">
-
-<div id="gallery" class="gallery"></div>
+<div class="card">👨‍👩‍👧 우리 가족을 위한 작은 앱</div>
 
 </div>
 
 <!-- 기도 -->
-<div id="pray" class="screen">
+<div id="pray" class="page">
 
 <div class="card">
-🙏 기도 제목
+🙏 기도 제목 추가
+<br>
+<input id="prayInput" placeholder="기도 제목 입력">
+<br>
+<button onclick="addPray()">저장</button>
 </div>
-
-<textarea id="prayText"></textarea>
-
-<button onclick="savePray()">저장</button>
 
 <div id="prayList"></div>
 
 </div>
 
 <!-- 일정 -->
-<div id="schedule" class="screen">
+<div id="schedule" class="page">
 
 <div class="card">
-📅 가족 일정
+📅 일정 추가
+<br>
+<input id="scheduleInput" placeholder="일정 입력">
+<br>
+<button onclick="addSchedule()">저장</button>
 </div>
 
-<input type="date">
-
-<button onclick="alert('일정 저장')">추가</button>
+<div id="scheduleList"></div>
 
 </div>
 
+<!-- 생일 -->
+<div id="birthday" class="page">
+
+<div class="card">
+🎂 생일 추가
+<br>
+<input id="birthdayInput" placeholder="예: 엄마 5월10일">
+<br>
+<button onclick="addBirthday()">저장</button>
 </div>
 
-<div class="bottom-nav">
+<div id="birthdayList"></div>
 
-<button class="nav-btn" onclick="show('home')">🏠 홈</button>
+</div>
 
-<button class="nav-btn" onclick="show('photos')">📷 사진</button>
+<!-- 하단 메뉴 -->
+<div class="navbar">
 
-<button class="nav-btn" onclick="show('pray')">🙏 기도</button>
-
-<button class="nav-btn" onclick="show('schedule')">📅 일정</button>
+<button class="navbtn" onclick="showPage('home')">🏠</button>
+<button class="navbtn" onclick="showPage('pray')">🙏</button>
+<button class="navbtn" onclick="showPage('schedule')">📅</button>
+<button class="navbtn" onclick="showPage('birthday')">🎂</button>
 
 </div>
 
 <script>
 
-function show(screen){
+function showPage(page){
 
-document.querySelectorAll(".screen").forEach(s=>{
-s.classList.remove("active")
+document.querySelectorAll(".page").forEach(p=>{
+p.classList.remove("active")
 })
 
-document.getElementById(screen).classList.add("active")
+document.getElementById(page).classList.add("active")
 
 }
 
-function toggleDark(){
-document.body.classList.toggle("dark")
-}
+/* 기도 저장 */
 
-function addPhoto(event){
+function addPray(){
 
-let file=event.target.files[0]
+let text=document.getElementById("prayInput").value
 
-let reader=new FileReader()
+if(text==="")return
 
-reader.onload=function(e){
+let list=JSON.parse(localStorage.getItem("pray")||"[]")
 
-let img=document.createElement("img")
+list.push(text)
 
-img.src=e.target.result
+localStorage.setItem("pray",JSON.stringify(list))
 
-document.getElementById("gallery").appendChild(img)
+document.getElementById("prayInput").value=""
 
-saveGallery()
-
-}
-
-reader.readAsDataURL(file)
-
-}
-
-function saveGallery(){
-
-localStorage.setItem("gallery",document.getElementById("gallery").innerHTML)
-
-}
-
-function loadGallery(){
-
-let data=localStorage.getItem("gallery")
-
-if(data){
-
-document.getElementById("gallery").innerHTML=data
-
-}
-
-}
-
-function savePray(){
-
-let text=document.getElementById("prayText").value
-
-let list=document.getElementById("prayList")
-
-let div=document.createElement("div")
-
-div.className="card"
-
-div.innerText=text
-
-list.appendChild(div)
-
-savePrayList()
-
-}
-
-function savePrayList(){
-
-localStorage.setItem("pray",document.getElementById("prayList").innerHTML)
+loadPray()
 
 }
 
 function loadPray(){
 
-let data=localStorage.getItem("pray")
+let list=JSON.parse(localStorage.getItem("pray")||"[]")
 
-if(data){
+let html=""
 
-document.getElementById("prayList").innerHTML=data
+list.forEach(i=>{
+html+=`<div class="card">${i}</div>`
+})
+
+document.getElementById("prayList").innerHTML=html
 
 }
 
+/* 일정 */
+
+function addSchedule(){
+
+let text=document.getElementById("scheduleInput").value
+
+if(text==="")return
+
+let list=JSON.parse(localStorage.getItem("schedule")||"[]")
+
+list.push(text)
+
+localStorage.setItem("schedule",JSON.stringify(list))
+
+document.getElementById("scheduleInput").value=""
+
+loadSchedule()
+
 }
 
-loadGallery()
+function loadSchedule(){
+
+let list=JSON.parse(localStorage.getItem("schedule")||"[]")
+
+let html=""
+
+list.forEach(i=>{
+html+=`<div class="card">${i}</div>`
+})
+
+document.getElementById("scheduleList").innerHTML=html
+
+}
+
+/* 생일 */
+
+function addBirthday(){
+
+let text=document.getElementById("birthdayInput").value
+
+if(text==="")return
+
+let list=JSON.parse(localStorage.getItem("birthday")||"[]")
+
+list.push(text)
+
+localStorage.setItem("birthday",JSON.stringify(list))
+
+document.getElementById("birthdayInput").value=""
+
+loadBirthday()
+
+}
+
+function loadBirthday(){
+
+let list=JSON.parse(localStorage.getItem("birthday")||"[]")
+
+let html=""
+
+list.forEach(i=>{
+html+=`<div class="card">${i}</div>`
+})
+
+document.getElementById("birthdayList").innerHTML=html
+
+}
+
+/* 앱 시작 */
+
 loadPray()
+loadSchedule()
+loadBirthday()
 
-// PWA install button
-
-let deferredPrompt
-
-const installBtn=document.getElementById("installBtn")
-
-window.addEventListener("beforeinstallprompt",(e)=>{
-
-e.preventDefault()
-
-deferredPrompt=e
-
-installBtn.style.display="block"
-
-})
-
-installBtn.addEventListener("click",()=>{
-
-installBtn.style.display="none"
-
-deferredPrompt.prompt()
-
-})
-
-// service worker
+/* PWA */
 
 if ('serviceWorker' in navigator) {
 navigator.serviceWorker.register('service-worker.js');
