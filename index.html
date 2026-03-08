@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>우리 가족 앱</title>
-<link rel="manifest" href="manifest.json">
 
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>우리 가족 앱</title>
+
+<link rel="manifest" href="manifest.json">
 
 <style>
 
@@ -25,7 +27,7 @@ header{
 background:#4CAF50;
 color:white;
 padding:15px;
-font-size:24px;
+font-size:22px;
 display:flex;
 justify-content:space-between;
 align-items:center;
@@ -33,7 +35,7 @@ align-items:center;
 
 .container{
 padding:20px;
-padding-bottom:80px;
+padding-bottom:90px;
 }
 
 .screen{
@@ -50,7 +52,6 @@ padding:20px;
 border-radius:15px;
 box-shadow:0 3px 10px rgba(0,0,0,0.2);
 margin-bottom:15px;
-font-size:20px;
 }
 
 .dark .card{
@@ -58,18 +59,12 @@ background:#333;
 }
 
 button{
-padding:12px 18px;
-font-size:16px;
+padding:10px 15px;
 border:none;
 border-radius:10px;
 background:#4CAF50;
 color:white;
-}
-
-.gallery img{
-width:100%;
-border-radius:10px;
-margin-top:10px;
+font-size:16px;
 }
 
 .bottom-nav{
@@ -93,6 +88,23 @@ border:none;
 font-size:16px;
 }
 
+.gallery img{
+width:100%;
+border-radius:10px;
+margin-top:10px;
+}
+
+textarea{
+width:100%;
+height:100px;
+font-size:16px;
+}
+
+.install{
+background:#2196F3;
+margin-bottom:15px;
+}
+
 </style>
 
 </head>
@@ -103,7 +115,11 @@ font-size:16px;
 
 <span>우리 가족 앱</span>
 
+<div>
+
 <button onclick="toggleDark()">🌙</button>
+
+</div>
 
 </header>
 
@@ -112,13 +128,14 @@ font-size:16px;
 <!-- 홈 -->
 <div id="home" class="screen active">
 
+<button id="installBtn" class="install" style="display:none;">📲 앱 설치</button>
+
 <div class="card">
 👋 가족 앱에 오신 것을 환영합니다
 </div>
 
 <div class="card">
-오늘의 말씀 ✨  
-항상 기뻐하라
+오늘도 행복한 하루 보내세요 😊
 </div>
 
 </div>
@@ -132,7 +149,7 @@ font-size:16px;
 
 <input type="file" accept="image/*" onchange="addPhoto(event)">
 
-<div class="gallery" id="gallery"></div>
+<div id="gallery" class="gallery"></div>
 
 </div>
 
@@ -143,9 +160,11 @@ font-size:16px;
 🙏 기도 제목
 </div>
 
-<textarea id="prayText" style="width:100%;height:100px;font-size:18px;"></textarea>
+<textarea id="prayText"></textarea>
 
 <button onclick="savePray()">저장</button>
+
+<div id="prayList"></div>
 
 </div>
 
@@ -164,7 +183,6 @@ font-size:16px;
 
 </div>
 
-<!-- 하단 메뉴 -->
 <div class="bottom-nav">
 
 <button class="nav-btn" onclick="show('home')">🏠 홈</button>
@@ -181,13 +199,11 @@ font-size:16px;
 
 function show(screen){
 
-let screens=document.querySelectorAll('.screen')
-
-screens.forEach(s=>{
-s.classList.remove('active')
+document.querySelectorAll(".screen").forEach(s=>{
+s.classList.remove("active")
 })
 
-document.getElementById(screen).classList.add('active')
+document.getElementById(screen).classList.add("active")
 
 }
 
@@ -209,9 +225,29 @@ img.src=e.target.result
 
 document.getElementById("gallery").appendChild(img)
 
+saveGallery()
+
 }
 
 reader.readAsDataURL(file)
+
+}
+
+function saveGallery(){
+
+localStorage.setItem("gallery",document.getElementById("gallery").innerHTML)
+
+}
+
+function loadGallery(){
+
+let data=localStorage.getItem("gallery")
+
+if(data){
+
+document.getElementById("gallery").innerHTML=data
+
+}
 
 }
 
@@ -219,11 +255,67 @@ function savePray(){
 
 let text=document.getElementById("prayText").value
 
-alert("기도 저장: "+text)
+let list=document.getElementById("prayList")
+
+let div=document.createElement("div")
+
+div.className="card"
+
+div.innerText=text
+
+list.appendChild(div)
+
+savePrayList()
 
 }
 
-// PWA 설치
+function savePrayList(){
+
+localStorage.setItem("pray",document.getElementById("prayList").innerHTML)
+
+}
+
+function loadPray(){
+
+let data=localStorage.getItem("pray")
+
+if(data){
+
+document.getElementById("prayList").innerHTML=data
+
+}
+
+}
+
+loadGallery()
+loadPray()
+
+// PWA install button
+
+let deferredPrompt
+
+const installBtn=document.getElementById("installBtn")
+
+window.addEventListener("beforeinstallprompt",(e)=>{
+
+e.preventDefault()
+
+deferredPrompt=e
+
+installBtn.style.display="block"
+
+})
+
+installBtn.addEventListener("click",()=>{
+
+installBtn.style.display="none"
+
+deferredPrompt.prompt()
+
+})
+
+// service worker
+
 if ('serviceWorker' in navigator) {
 navigator.serviceWorker.register('service-worker.js');
 }
