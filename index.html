@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>우리 가족 앱</title>
+<link rel="manifest" href="manifest.json">
+<style>
+body{font-family:sans-serif;margin:0;background:#f4f4f4;text-align:center;}
+header{background:#4CAF50;color:white;padding:20px;font-size:24px;}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:20px;}
+.card{background:white;padding:20px;border-radius:12px;box-shadow:0 2px 5px rgba(0,0,0,0.2);font-size:18px;}
+button{padding:10px 15px;font-size:16px;margin-top:10px;}
+</style>
+</head>
+
+<body>
+<header>우리 가족 앱</header>
+<div class="menu">
+<div class="card">📷 가족 사진<br><button onclick="alert('사진 갤러리 열기')">열기</button></div>
+<div class="card">🙏 기도 제목<br><button onclick="alert('기도 목록 열기')">열기</button></div>
+<div class="card">📅 가족 일정<br><button onclick="alert('일정 보기')">열기</button></div>
+<div class="card">🎂 가족 생일<br><button onclick="alert('생일 확인')">열기</button></div>
+</div>
+
+<script>
+// PWA 설치
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+</body>
+</html>
