@@ -1,7 +1,34 @@
-self.addEventListener('install', function(event) {
-  console.log('Service Worker 설치됨');
-});
+const CACHE_NAME = "family-app-v1"
 
-self.addEventListener('fetch', function(event) {
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
-});
+const urlsToCache = [
+"/",
+"/index.html",
+"/manifest.json",
+"/icon.png"
+]
+
+self.addEventListener("install",event=>{
+
+event.waitUntil(
+
+caches.open(CACHE_NAME)
+.then(cache=>{
+return cache.addAll(urlsToCache)
+})
+
+)
+
+})
+
+self.addEventListener("fetch",event=>{
+
+event.respondWith(
+
+caches.match(event.request)
+.then(response=>{
+return response || fetch(event.request)
+})
+
+)
+
+})
