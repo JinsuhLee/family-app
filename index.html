@@ -1,58 +1,88 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <meta name="theme-color" content="#4CAF50">
+
 <title>우리 가족 앱</title>
+
 <link rel="manifest" href="manifest.json">
 
+
 <style>
+
+/* 전체 */
 
 body{
 margin:0;
 font-family:sans-serif;
 background:#f4f4f4;
+font-size:20px;
 }
+
+/* 상단 */
 
 header{
 background:#4CAF50;
 color:white;
-padding:20px;
-font-size:26px;
+padding:22px;
+font-size:32px;
+font-weight:bold;
 text-align:center;
 }
+
+/* 페이지 */
 
 .page{
 display:none;
 padding:20px;
-padding-bottom:80px;
+padding-bottom:120px;
 }
 
 .active{
 display:block;
 }
 
+/* 카드 */
+
 .card{
 background:white;
-padding:20px;
-border-radius:12px;
-margin-bottom:15px;
-box-shadow:0 2px 5px rgba(0,0,0,0.2);
-font-size:18px;
+padding:25px;
+border-radius:16px;
+margin-bottom:20px;
+box-shadow:0 3px 8px rgba(0,0,0,0.2);
+font-size:24px;
 }
+
+/* 입력 */
 
 input{
-width:90%;
-padding:10px;
-font-size:16px;
-margin-top:10px;
+width:95%;
+padding:18px;
+font-size:22px;
+border-radius:10px;
+border:1px solid #ccc;
+margin-top:15px;
 }
 
+/* 버튼 */
+
 button{
-margin-top:10px;
-padding:10px 20px;
-font-size:16px;
+margin-top:15px;
+padding:15px 30px;
+font-size:22px;
+border-radius:10px;
+border:none;
+background:#4CAF50;
+color:white;
 }
+
+/* 하단 메뉴 */
 
 .navbar{
 position:fixed;
@@ -61,86 +91,136 @@ width:100%;
 background:white;
 display:flex;
 justify-content:space-around;
-padding:10px 0;
-box-shadow:0 -2px 5px rgba(0,0,0,0.2);
+padding:15px 0;
+box-shadow:0 -2px 8px rgba(0,0,0,0.2);
 }
 
+/* 메뉴 버튼 */
+
 .navbtn{
-font-size:22px;
+font-size:32px;
 background:none;
 border:none;
 }
 
 </style>
+
 </head>
 
 <body>
 
-<header>우리 가족 앱</header>
+<header>
+우리 가족 앱
+</header>
+
 
 <!-- 홈 -->
+
 <div id="home" class="page active">
 
-<div class="card">👨‍👩‍👧 우리 가족을 위한 작은 앱</div>
+<div class="card">
+👨‍👩‍👧 우리 가족을 위한 작은 앱
+</div>
 
 </div>
 
+
 <!-- 기도 -->
+
 <div id="pray" class="page">
 
 <div class="card">
+
 🙏 기도 제목 추가
+
 <br>
+
 <input id="prayInput" placeholder="기도 제목 입력">
+
 <br>
+
 <button onclick="addPray()">저장</button>
+
 </div>
 
 <div id="prayList"></div>
 
 </div>
 
+
 <!-- 일정 -->
+
 <div id="schedule" class="page">
 
 <div class="card">
+
 📅 일정 추가
+
 <br>
+
 <input id="scheduleInput" placeholder="일정 입력">
+
 <br>
+
 <button onclick="addSchedule()">저장</button>
+
 </div>
 
 <div id="scheduleList"></div>
 
 </div>
 
+
 <!-- 생일 -->
+
 <div id="birthday" class="page">
 
 <div class="card">
+
 🎂 생일 추가
+
 <br>
+
 <input id="birthdayInput" placeholder="예: 엄마 5월10일">
+
 <br>
+
 <button onclick="addBirthday()">저장</button>
+
 </div>
 
 <div id="birthdayList"></div>
 
 </div>
 
+
 <!-- 하단 메뉴 -->
+
 <div class="navbar">
 
-<button class="navbtn" onclick="showPage('home')">🏠</button>
-<button class="navbtn" onclick="showPage('pray')">🙏</button>
-<button class="navbtn" onclick="showPage('schedule')">📅</button>
-<button class="navbtn" onclick="showPage('birthday')">🎂</button>
+<button class="navbtn" onclick="showPage('home')">
+🏠
+</button>
+
+<button class="navbtn" onclick="showPage('pray')">
+🙏
+</button>
+
+<button class="navbtn" onclick="showPage('schedule')">
+📅
+</button>
+
+<button class="navbtn" onclick="showPage('birthday')">
+🎂
+</button>
 
 </div>
 
+
 <script>
+
+
+/* 페이지 전환 */
 
 function showPage(page){
 
@@ -151,6 +231,7 @@ p.classList.remove("active")
 document.getElementById(page).classList.add("active")
 
 }
+
 
 /* 기도 저장 */
 
@@ -186,6 +267,7 @@ document.getElementById("prayList").innerHTML=html
 
 }
 
+
 /* 일정 */
 
 function addSchedule(){
@@ -219,6 +301,7 @@ html+=`<div class="card">${i}</div>`
 document.getElementById("scheduleList").innerHTML=html
 
 }
+
 
 /* 생일 */
 
@@ -254,19 +337,25 @@ document.getElementById("birthdayList").innerHTML=html
 
 }
 
+
 /* 앱 시작 */
 
 loadPray()
 loadSchedule()
 loadBirthday()
 
+
 /* PWA */
 
 if ('serviceWorker' in navigator) {
+
 navigator.serviceWorker.register('service-worker.js');
+
 }
 
 </script>
 
+
 </body>
+
 </html>
