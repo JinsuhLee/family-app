@@ -358,6 +358,33 @@ document.getElementById("birthdayList").innerHTML=html
 
 }
 
+async function loadVerse(){
+
+const url="https://docs.google.com/spreadsheets/d/17hULHxcYPTGLHat_9gxCEH8DiSvLeh1hTmT6WvvkR5s/edit?gid=0#gid=0"
+
+let res=await fetch(url)
+
+let text=await res.text()
+
+let rows=text.split("\n")
+
+let today=new Date().toISOString().slice(0,10)
+
+for(let i=1;i<rows.length;i++){
+
+let cols=rows[i].split(",")
+
+if(cols[0]==today){
+
+document.getElementById("verseText").innerText=cols[1]
+
+}
+
+}
+
+}
+
+loadVerse()
 
 loadPray()
 loadSchedule()
