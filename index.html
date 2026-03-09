@@ -359,27 +359,31 @@ document.getElementById("birthdayList").innerHTML=html
 
 async function loadVerse(){
 
-const url="https://docs.google.com/spreadsheets/d/e/2PACX-1vTTg1lhQeuLIOTlbY2vLVjnrFtKCUbacm_901MoLI_OuazIXT2pMlIogDk1-y7VWbvtXE0edWAcIylg/pubhtml"
-
 let res=await fetch(url)
 
-let text=await res.text()
-
-let rows=text.split("\n")
+let data=await res.json()
 
 let today=new Date().toISOString().slice(0,10)
 
-for(let i=1;i<rows.length;i++){
+let verse=""
 
-let cols=rows[i].split(",")
+data.forEach(row=>{
 
-if(cols[0]==today){
+if(row.date==today){
 
-document.getElementById("verseText").innerText=cols[1]
+verse=row.verse
+
+}
+
+})
+
+if(verse==""){
+
+verse=data[0].verse
 
 }
 
-}
+document.getElementById("verseText").innerText=verse
 
 }
 
