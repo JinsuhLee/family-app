@@ -359,7 +359,9 @@ document.getElementById("birthdayList").innerHTML=html
 
 async function loadVerse(){
 
-let res=await fetch("https://sheetdb.io/api/v1/0z7it7x68y6xl")
+const url="https://sheetdb.io/api/v1/0z7it7x68y6xl"
+
+let res=await fetch(url)
 
 let data=await res.json()
 
