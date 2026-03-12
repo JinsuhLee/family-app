@@ -120,6 +120,20 @@ background:none;
 border:none;
 }
 
+.photo-input{
+width:95%;
+margin-top:15px;
+font-size:18px;
+}
+
+.gallery-img{
+width:100%;
+max-width:420px;
+border-radius:16px;
+display:block;
+margin:0 auto;
+}
+
 </style>
 
 </head>
@@ -223,6 +237,25 @@ border:none;
 </div>
 
 
+<!-- 사진 -->
+
+<div id="photo" class="page">
+
+<div class="card">
+
+🖼️ 가족 사진 올리기
+
+<br>
+
+<input id="photoInput" class="photo-input" type="file" accept="image/*">
+
+</div>
+
+<div id="photoList"></div>
+
+</div>
+
+
 <!-- 하단 메뉴 -->
 
 <div class="navbar">
@@ -235,10 +268,43 @@ border:none;
 
 <button class="navbtn" onclick="showPage('birthday')">🎂</button>
 
+<button class="navbtn" onclick="showPage('photo')">🖼️</button>
+
 </div>
 
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
 <script>
+
+const FIREBASE_CONFIG={
+apiKey:"",
+authDomain:"",
+projectId:"",
+storageBucket:"",
+messagingSenderId:"",
+appId:""
+}
+
+let cloudReady=false
+let firestoreDb=null
+let cloudStorage=null
+let photoUnsubscribe=null
+
+function initFirebase(){
+
+const configOk=Object.values(FIREBASE_CONFIG).every(v=>v&&v.trim()!=="")
+
+if(!configOk)return
+
+firebase.initializeApp(FIREBASE_CONFIG)
+firestoreDb=firebase.firestore()
+cloudStorage=firebase.storage()
+cloudReady=true
+
+}
 
 /* 페이지 이동 */
 
@@ -357,6 +423,111 @@ document.getElementById("birthdayList").innerHTML=html
 
 }
 
+
+/* 사진 */
+
+async function addPhoto(file){
+
+if(cloudReady){
+
+let safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_")
+let filePath=`photos/${Date.now()}_${safeName}`
+
+let ref=cloudStorage.ref().child(filePath)
+await ref.put(file)
+let url=await ref.getDownloadURL()
+
+await firestoreDb.collection("photos").add({
+url:url,
+createdAt:firebase.firestore.FieldValue.serverTimestamp()
+})
+
+return
+
+}
+
+let reader=new FileReader()
+
+reader.onload=event=>{
+let base64=event.target.result
+
+let list=JSON.parse(localStorage.getItem("photos")||"[]")
+
+list.unshift(base64)
+
+localStorage.setItem("photos",JSON.stringify(list))
+
+loadPhotos()
+
+}
+
+reader.readAsDataURL(file)
+
+}
+
+function loadPhotos(){
+
+if(cloudReady){
+
+if(photoUnsubscribe){
+photoUnsubscribe()
+}
+
+photoUnsubscribe=firestoreDb.collection("photos")
+.orderBy("createdAt","desc")
+.onSnapshot(snapshot=>{
+
+let html=""
+
+snapshot.forEach(doc=>{
+let data=doc.data()
+if(data.url){
+html+=`<div class="card"><img src="${data.url}" class="gallery-img"></div>`
+}
+})
+
+document.getElementById("photoList").innerHTML=html
+
+})
+
+return
+
+}
+
+let list=JSON.parse(localStorage.getItem("photos")||"[]")
+
+let html=""
+
+list.forEach(src=>{
+html+=`<div class="card"><img src="${src}" class="gallery-img"></div>`
+})
+
+document.getElementById("photoList").innerHTML=html
+
+}
+
+function setupPhotoUpload(){
+
+let input=document.getElementById("photoInput")
+
+input.addEventListener("change",e=>{
+
+let file=e.target.files[0]
+
+if(!file)return
+
+addPhoto(file)
+.catch(()=>{
+alert("사진 업로드 중 오류가 발생했어요.")
+})
+.finally(()=>{
+input.value=""
+})
+
+})
+
+}
+
 async function loadVerse(){
 
 const url="https://sheetdb.io/api/v1/0z7it7x68y6xl"
@@ -394,6 +565,9 @@ loadVerse()
 loadPray()
 loadSchedule()
 loadBirthday()
+initFirebase()
+loadPhotos()
+setupPhotoUpload()
 
 
 /* PWA */
