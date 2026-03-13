@@ -56,3 +56,25 @@ window.FIREBASE_CONFIG={
 4. 배포 후 사진 업로드/조회 정상 동작 확인
 
 주의: 인증을 켜지 않고 규칙만 인증 필수로 바꾸면 클라우드 업로드가 차단됩니다.
+
+## 배포 직전 최종 체크리스트
+
+### Firebase Console
+
+1. Build > Authentication > Sign-in method > `Anonymous`가 Enabled인지 확인
+2. Firestore Database > Rules에 `firestore.rules` 적용 후 Publish
+3. Storage > Rules에 `storage.rules` 적용 후 Publish
+4. Project settings > Your apps에서 웹 앱의 `apiKey/authDomain/projectId`가 `firebase-config.js`와 일치하는지 확인
+
+### GitHub
+
+1. Settings > Security > Code security and analysis > Secret scanning: Enabled
+2. Settings > Security > Secret scanning > Push protection: Enabled
+3. Settings > Branches > `main` 보호 규칙(PR 필수, 직접 push 제한)
+4. Actions 탭에서 `Secret Scan` 워크플로우 최근 실행이 Success인지 확인
+
+### 배포 후 검증
+
+1. 첫 접속 시 앱 정상 로딩 및 말씀 데이터 표시 확인
+2. 사진 업로드 1건 실행 후 다른 기기/브라우저에서 동일 사진 조회 확인
+3. 브라우저 개발자도구 콘솔에 Firebase 권한 오류(`permission-denied`)가 없는지 확인
