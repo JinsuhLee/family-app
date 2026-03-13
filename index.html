@@ -276,6 +276,7 @@ margin:0 auto;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="firebase-config.js"></script>
 
 <script>
@@ -287,7 +288,7 @@ let firestoreDb=null
 let cloudStorage=null
 let photoUnsubscribe=null
 
-function initFirebase(){
+async function initFirebase(){
 
 const requiredKeys=["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"]
 const configOk=requiredKeys.every(key=>{
@@ -300,6 +301,9 @@ if(!configOk)return
 if(firebase.apps.length===0){
 firebase.initializeApp(FIREBASE_CONFIG)
 }
+
+await firebase.auth().signInAnonymously()
+
 firestoreDb=firebase.firestore()
 cloudStorage=firebase.storage()
 cloudReady=true
@@ -566,7 +570,12 @@ loadPray()
 loadSchedule()
 loadBirthday()
 initFirebase()
+.catch(()=>{
+alert("클라우드 연결에 실패해 로컬 저장 모드로 동작합니다.")
+})
+.finally(()=>{
 loadPhotos()
+})
 setupPhotoUpload()
 
 

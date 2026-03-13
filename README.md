@@ -45,3 +45,14 @@ window.FIREBASE_CONFIG={
 2. Push protection 활성화
 3. Branch protection rule 설정 (main 직접 push 제한, PR 필수)
 4. Actions 탭에서 `Secret Scan` 워크플로우(gitleaks) 성공 확인
+
+## 운영용 Firebase 보안 적용(인증 필수)
+
+이 프로젝트는 Firebase 설정이 있으면 익명 인증으로 로그인 후 클라우드 모드로 동작합니다.
+
+1. Firebase Console > Authentication > Sign-in method에서 `Anonymous` 활성화
+2. Firestore Rules에 `firestore.rules` 내용 적용
+3. Storage Rules에 `storage.rules` 내용 적용
+4. 배포 후 사진 업로드/조회 정상 동작 확인
+
+주의: 인증을 켜지 않고 규칙만 인증 필수로 바꾸면 클라우드 업로드가 차단됩니다.
