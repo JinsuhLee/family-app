@@ -276,18 +276,11 @@ margin:0 auto;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
 
 <script>
 
-const FIREBASE_CONFIG={
-	apiKey: "AIzaSyDANnp7E3Qh6t8hOoD5oZ5iRsP2KcyStio",
-	authDomain: "family-app-c9057.firebaseapp.com",
-	projectId: "family-app-c9057",
-	storageBucket: "family-app-c9057.firebasestorage.app",
-	messagingSenderId: "247043546754",
-	appId: "1:247043546754:web:0b7bc64bb66374fcf71e9b",
-	measurementId: "G-PD5B164LMY"
-}
+const FIREBASE_CONFIG=window.FIREBASE_CONFIG||{}
 
 let cloudReady=false
 let firestoreDb=null
@@ -296,11 +289,17 @@ let photoUnsubscribe=null
 
 function initFirebase(){
 
-const configOk=Object.values(FIREBASE_CONFIG).every(v=>v&&v.trim()!=="")
+const requiredKeys=["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"]
+const configOk=requiredKeys.every(key=>{
+let value=FIREBASE_CONFIG[key]
+return typeof value==="string"&&value.trim()!==""
+})
 
 if(!configOk)return
 
+if(firebase.apps.length===0){
 firebase.initializeApp(FIREBASE_CONFIG)
+}
 firestoreDb=firebase.firestore()
 cloudStorage=firebase.storage()
 cloudReady=true
