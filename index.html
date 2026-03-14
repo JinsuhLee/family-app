@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#4CAF50">
+
+<title>오리지날 LEE</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+
+body{
+margin:0;
+font-family:sans-serif;
+background:#f4f4f4;
+font-size:20px;
+text-align:center;
+}
+
+/* 상단 타이틀 */
+
+header{
+background:#4CAF50;
+color:white;
+padding:22px;
+font-size:34px;
+font-weight:bold;
+}
+
+/* 페이지 */
+
+.page{
+display:none;
+padding:20px;
+padding-bottom:120px;
+}
+
+.active{
+display:block;
+}
+
+/* 카드 */
+
+.card{
+background:white;
+padding:25px;
+border-radius:16px;
+margin-bottom:20px;
+box-shadow:0 3px 8px rgba(0,0,0,0.2);
+font-size:24px;
+}
+
+/* 가족 이미지 */
+
+.family-img{
+width:90%;
+max-width:350px;
+border-radius:20px;
+margin:20px auto;
+display:block;
+}
+
+/* 말씀 */
+
+.verse-title{
+font-size:26px;
+font-weight:bold;
+margin-top:10px;
+}
+
+.verse-text{
+font-size:22px;
+margin-top:10px;
+line-height:1.6;
+}
+
+/* 입력 */
+
+input{
+width:95%;
+padding:18px;
+font-size:22px;
+border-radius:10px;
+border:1px solid #ccc;
+margin-top:15px;
+}
+
+/* 버튼 */
+
+button{
+margin-top:15px;
+padding:15px 30px;
+font-size:22px;
+border-radius:10px;
+border:none;
+background:#4CAF50;
+color:white;
+}
+
+/* 하단 메뉴 */
+
+.navbar{
+position:fixed;
+bottom:0;
+width:100%;
+background:white;
+display:flex;
+justify-content:flex-start;
+gap:8px;
+padding:10px 8px;
+box-sizing:border-box;
+overflow-x:auto;
+overflow-y:hidden;
+white-space:nowrap;
+-webkit-overflow-scrolling:touch;
+box-shadow:0 -2px 8px rgba(0,0,0,0.2);
+}
+
+.navbar::-webkit-scrollbar{
+display:none;
+}
+
+.navbar{
+scrollbar-width:none;
+-ms-overflow-style:none;
+}
+
+.navbtn{
+font-size:28px;
+padding:8px 10px;
+margin:0;
+flex:0 0 auto;
+background:none;
+border:none;
+}
+
+@media (max-width:380px){
+.navbar{
+gap:4px;
+padding:8px 6px;
+}
+
+.navbtn{
+font-size:24px;
+padding:6px 8px;
+}
+}
+
+.photo-input{
+width:95%;
+margin-top:15px;
+font-size:18px;
+}
+
+.gallery-img{
+width:100%;
+max-width:420px;
+border-radius:16px;
+display:block;
+margin:0 auto;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+오리지날 LEE
+</header>
+
+
+<!-- 홈 -->
+
+<div id="home" class="page active">
+
+<img src="family.jpg" class="family-img">
+
+<div class="card">
+
+<div class="verse-title">
+📖 오늘의 말씀
+</div>
+
+<div id="verseText" class="verse-text">
+
+
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- 기도 -->
+
+<div id="pray" class="page">
+
+<div class="card">
+
+🙏 기도 제목 추가
+
+<br>
+
+<input id="prayInput" placeholder="기도 제목 입력">
+
+<br>
+
+<button onclick="addPray()">저장</button>
+
+</div>
+
+<div id="prayList"></div>
+
+</div>
+
+
+<!-- 일정 -->
+
+<div id="schedule" class="page">
+
+<div class="card">
+
+📅 일정 추가
+
+<br>
+
+<input id="scheduleInput" placeholder="일정 입력">
+
+<br>
+
+<button onclick="addSchedule()">저장</button>
+
+</div>
+
+<div id="scheduleList"></div>
+
+</div>
+
+
+<!-- 생일 -->
+
+<div id="birthday" class="page">
+
+<div class="card">
+
+🎂 생일 추가
+
+<br>
+
+<input id="birthdayInput" placeholder="예: 엄마 5월10일">
+
+<br>
+
+<button onclick="addBirthday()">저장</button>
+
+</div>
+
+<div id="birthdayList"></div>
+
+</div>
+
+
+<!-- 사진 -->
+
+<div id="photo" class="page">
+
+<div class="card">
+
+🖼️ 가족 사진 올리기
+
+<br>
+
+<input id="photoInput" class="photo-input" type="file" accept="image/*">
+
+</div>
+
+<div id="photoList"></div>
+
+</div>
+
+
+<!-- 하단 메뉴 -->
+
+<div class="navbar">
+
+<button class="navbtn" onclick="showPage('home')">🏠</button>
+
+<button class="navbtn" onclick="showPage('pray')">🙏</button>
+
+<button class="navbtn" onclick="showPage('schedule')">📅</button>
+
+<button class="navbtn" onclick="showPage('birthday')">🎂</button>
+
+<button class="navbtn" onclick="showPage('photo')">🖼️</button>
+
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="cloudinary-config.js"></script>
+
+<script>
+
+const FIREBASE_CONFIG=window.FIREBASE_CONFIG||{}
+const CLOUDINARY_CONFIG=window.CLOUDINARY_CONFIG||{}
+
+let cloudReady=false
+let firestoreDb=null
+let photoUnsubscribe=null
+
+async function initFirebase(){
+
+const requiredKeys=["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"]
+const configOk=requiredKeys.every(key=>{
+let value=FIREBASE_CONFIG[key]
+return typeof value==="string"&&value.trim()!==""
+})
+
+if(!configOk)return
+
+if(firebase.apps.length===0){
+firebase.initializeApp(FIREBASE_CONFIG)
+}
+
+await firebase.auth().signInAnonymously()
+
+firestoreDb=firebase.firestore()
+cloudReady=true
+
+}
+
+function canUseCloudinaryUpload(){
+
+let cloudName=CLOUDINARY_CONFIG.cloudName
+let uploadPreset=CLOUDINARY_CONFIG.uploadPreset
+
+return typeof cloudName==="string"
+&&cloudName.trim()!==""
+&&typeof uploadPreset==="string"
+&&uploadPreset.trim()!==""
+
+}
+
+/* 페이지 이동 */
+
+function showPage(page){
+
+document.querySelectorAll(".page").forEach(p=>{
+p.classList.remove("active")
+})
+
+document.getElementById(page).classList.add("active")
+
+}
+
+
+/* XSS 방지 */
+
+function escapeHtml(str){
+return str
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;")
+}
+
+/* 기도 */
+
+function addPray(){
+
+let text=document.getElementById("prayInput").value.trim()
+
+if(text==="")return
+
+let list=JSON.parse(localStorage.getItem("pray")||"[]")
+
+list.push(text)
+
+try{
+localStorage.setItem("pray",JSON.stringify(list))
+}catch(e){
+alert("저장 공간이 부족해서 저장하지 못했어요.")
+return
+}
+
+document.getElementById("prayInput").value=""
+
+loadPray()
+
+}
+
+function loadPray(){
+
+let list=JSON.parse(localStorage.getItem("pray")||"[]")
+
+let html=""
+
+list.forEach(i=>{
+html+=`<div class="card">${escapeHtml(i)}</div>`
+})
+
+document.getElementById("prayList").innerHTML=html
+
+}
+
+
+/* 일정 */
+
+function addSchedule(){
+
+let text=document.getElementById("scheduleInput").value.trim()
+
+if(text==="")return
+
+let list=JSON.parse(localStorage.getItem("schedule")||"[]")
+
+list.push(text)
+
+try{
+localStorage.setItem("schedule",JSON.stringify(list))
+}catch(e){
+alert("저장 공간이 부족해서 저장하지 못했어요.")
+return
+}
+
+document.getElementById("scheduleInput").value=""
+
+loadSchedule()
+
+}
+
+function loadSchedule(){
+
+let list=JSON.parse(localStorage.getItem("schedule")||"[]")
+
+let html=""
+
+list.forEach(i=>{
+html+=`<div class="card">${escapeHtml(i)}</div>`
+})
+
+document.getElementById("scheduleList").innerHTML=html
+
+}
+
+
+/* 생일 */
+
+function addBirthday(){
+
+let text=document.getElementById("birthdayInput").value.trim()
+
+if(text==="")return
+
+let list=JSON.parse(localStorage.getItem("birthday")||"[]")
+
+list.push(text)
+
+try{
+localStorage.setItem("birthday",JSON.stringify(list))
+}catch(e){
+alert("저장 공간이 부족해서 저장하지 못했어요.")
+return
+}
+
+document.getElementById("birthdayInput").value=""
+
+loadBirthday()
+
+}
+
+function loadBirthday(){
+
+let list=JSON.parse(localStorage.getItem("birthday")||"[]")
+
+let html=""
+
+list.forEach(i=>{
+html+=`<div class="card">${escapeHtml(i)}</div>`
+})
+
+document.getElementById("birthdayList").innerHTML=html
+
+}
+
+
+/* 사진 */
+
+async function addPhoto(file){
+
+if(cloudReady){
+
+if(!canUseCloudinaryUpload()){
+throw new Error("cloudinary_not_configured")
+}
+
+let cloudName=CLOUDINARY_CONFIG.cloudName.trim()
+let uploadPreset=CLOUDINARY_CONFIG.uploadPreset.trim()
+
+let uploadUrl=`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`
+let formData=new FormData()
+formData.append("file",file)
+formData.append("upload_preset",uploadPreset)
+formData.append("folder","family-app")
+
+let uploadRes=await fetch(uploadUrl,{
+method:"POST",
+body:formData
+})
+
+if(!uploadRes.ok){
+throw new Error("cloudinary_upload_failed")
+}
+
+let uploadData=await uploadRes.json()
+let url=uploadData.secure_url||uploadData.url||""
+
+if(url===""){
+throw new Error("cloudinary_url_missing")
+}
+
+await firestoreDb.collection("photos").add({
+url:url,
+createdAt:firebase.firestore.FieldValue.serverTimestamp()
+})
+
+return
+
+}
+
+let reader=new FileReader()
+
+reader.onload=event=>{
+let base64=event.target.result
+
+let list=JSON.parse(localStorage.getItem("photos")||"[]")
+
+list.unshift(base64)
+
+try{
+localStorage.setItem("photos",JSON.stringify(list))
+}catch(e){
+alert("저장 공간이 부족해서 사진을 저장하지 못했어요.")
+return
+}
+
+loadPhotos()
+
+}
+
+reader.readAsDataURL(file)
+
+}
+
+function loadPhotos(){
+
+if(cloudReady){
+
+if(photoUnsubscribe){
+photoUnsubscribe()
+}
+
+photoUnsubscribe=firestoreDb.collection("photos")
+.orderBy("createdAt","desc")
+.onSnapshot(snapshot=>{
+
+let html=""
+
+snapshot.forEach(doc=>{
+let data=doc.data()
+if(data.url){
+html+=`<div class="card"><img src="${data.url}" class="gallery-img"></div>`
+}
+})
+
+document.getElementById("photoList").innerHTML=html
+
+})
+
+return
+
+}
+
+let list=JSON.parse(localStorage.getItem("photos")||"[]")
+
+let html=""
+
+list.forEach(src=>{
+html+=`<div class="card"><img src="${src}" class="gallery-img"></div>`
+})
+
+document.getElementById("photoList").innerHTML=html
+
+}
+
+function setupPhotoUpload(){
+
+let input=document.getElementById("photoInput")
+let maxSizeBytes=5*1024*1024
+
+input.addEventListener("change",e=>{
+
+let file=e.target.files[0]
+
+if(!file)return
+
+if(!file.type||!file.type.startsWith("image/")){
+alert("이미지 파일만 업로드할 수 있어요.")
+input.value=""
+return
+}
+
+if(file.size>maxSizeBytes){
+alert("사진 용량은 5MB 이하만 업로드할 수 있어요.")
+input.value=""
+return
+}
+
+addPhoto(file)
+.catch(error=>{
+if(error&&error.message==="cloudinary_not_configured"){
+alert("Cloudinary 설정이 없어 사진 공유 업로드를 사용할 수 없어요.")
+return
+}
+alert("사진 업로드 중 오류가 발생했어요.")
+})
+.finally(()=>{
+input.value=""
+})
+
+})
+
+}
+
+async function loadVerse(){
+
+try{
+
+const url="https://sheetdb.io/api/v1/0z7it7x68y6xl"
+
+let res=await fetch(url)
+
+if(!res.ok) throw new Error("network error")
+
+let data=await res.json()
+
+let today=new Date().toISOString().slice(0,10)
+
+let verse=""
+
+data.forEach(row=>{
+
+if(row.date==today){
+
+verse=row.verse
+
+}
+
+})
+
+if(verse==""){
+
+verse=data[0]?.verse||""
+
+}
+
+document.getElementById("verseText").innerText=verse||"말씀을 불러올 수 없어요."
+
+}catch(e){
+
+document.getElementById("verseText").innerText="말씀을 불러올 수 없어요."
+
+}
+
+}
+
+loadVerse()
+
+loadPray()
+loadSchedule()
+loadBirthday()
+initFirebase()
+.catch(()=>{
+alert("클라우드 연결에 실패해 로컬 저장 모드로 동작합니다.")
+})
+.finally(()=>{
+loadPhotos()
+})
+setupPhotoUpload()
+
+
+/* PWA */
+
+if ('serviceWorker' in navigator) {
+navigator.serviceWorker.register('service-worker.js');
+}
+
+</script>
+
+</body>
+
+</html>
