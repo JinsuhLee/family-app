@@ -14,6 +14,50 @@
 
 - 기본: 브라우저 `localStorage`에 사진 저장 (기기별 저장)
 - Firebase 설정 시: 여러 사람이 같은 사진 목록을 공유
+- Firebase 없이 Cloudinary만 설정 시: 사진은 Cloudinary에 업로드되고, 링크 목록은 브라우저 `localStorage`에 저장
+- Firebase 없이 Cloudinary + Supabase 설정 시: 여러 기기에서 같은 사진 목록을 무료로 공유
+
+## Firebase 없이 무료 사진 업로드(Cloudinary)
+
+1. Cloudinary 계정 생성(무료)
+2. Upload Preset을 `Unsigned`로 생성
+3. 루트에 `cloudinary-config.js` 파일 생성 (`cloudinary-config.example.js` 참고)
+
+```js
+window.CLOUDINARY_CONFIG={
+	cloudName:"...",
+	uploadPreset:"..."
+}
+```
+
+주의: 이 모드에서는 이미지 파일은 Cloudinary에 올라가지만, 앱의 사진 목록(순서/목록 데이터)은 기기별 `localStorage`에 저장됩니다.
+
+## Firebase 없이 무료 기기 간 사진 목록 동기화(Cloudinary + Supabase)
+
+1. 위 Cloudinary 설정을 먼저 완료
+2. Supabase 프로젝트 생성(무료)
+3. SQL Editor에서 `supabase-photos.sql` 실행
+4. 루트에 `supabase-config.js` 파일 생성 (`supabase-config.example.js` 참고)
+
+```js
+window.SUPABASE_CONFIG={
+	url:"https://YOUR_PROJECT_REF.supabase.co",
+	anonKey:"YOUR_SUPABASE_ANON_KEY"
+}
+```
+
+동작 방식:
+
+- 이미지 파일: Cloudinary 저장
+- 사진 목록 데이터(URL/시간): Supabase `photos` 테이블 저장
+- 앱 우선순위: Firebase 사용 가능 시 Firebase, 아니면 Supabase, 둘 다 없으면 로컬 저장
+- 사진 카드의 `삭제` 버튼으로 목록에서 제거 가능
+- 최근 업로드 사진은 `삭제` 시 Cloudinary 원본 파일 삭제도 함께 시도
+- Cloudinary 원본 삭제가 실패하면 실패 이유를 알림으로 표시하고, 목록 삭제는 계속 진행
+
+주의: Cloudinary 원본 삭제는 `delete_token` 유효시간 안에서만 동작합니다(보통 업로드 직후 짧은 시간). 시간이 지난 사진은 앱 목록에서만 제거될 수 있습니다.
+
+이미 Supabase를 먼저 구성했다면 `supabase-photos.sql`을 다시 실행해 `delete_token` 컬럼/삭제 정책(`allow delete photos`)을 반영하세요.
 
 ## Firebase 공유 사진 설정
 

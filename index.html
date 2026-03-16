@@ -306,17 +306,23 @@ margin:0 auto;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="firebase-config.js"></script>
 <script src="cloudinary-config.js"></script>
+<script src="supabase-config.js"></script>
 
 <script>
 
 const FIREBASE_CONFIG=window.FIREBASE_CONFIG||{}
 const CLOUDINARY_CONFIG=window.CLOUDINARY_CONFIG||{}
+const SUPABASE_CONFIG=window.SUPABASE_CONFIG||{}
 
 let cloudReady=false
 let firestoreDb=null
 let photoUnsubscribe=null
+let supabaseReady=false
+let supabaseClient=null
+let supabaseChannel=null
 
 async function initFirebase(){
 
@@ -348,6 +354,83 @@ return typeof cloudName==="string"
 &&cloudName.trim()!==""
 &&typeof uploadPreset==="string"
 &&uploadPreset.trim()!==""
+
+}
+
+function canUseSupabase(){
+
+let url=SUPABASE_CONFIG.url
+let anonKey=SUPABASE_CONFIG.anonKey
+
+return typeof url==="string"
+&&url.trim()!==""
+&&typeof anonKey==="string"
+&&anonKey.trim()!==""
+
+}
+
+async function initSupabase(){
+
+if(!canUseSupabase())return
+if(typeof window.supabase==="undefined")return
+
+supabaseClient=window.supabase.createClient(
+SUPABASE_CONFIG.url.trim(),
+SUPABASE_CONFIG.anonKey.trim()
+)
+supabaseReady=true
+
+}
+
+function cleanupPhotoSubscriptions(){
+
+if(photoUnsubscribe){
+photoUnsubscribe()
+photoUnsubscribe=null
+}
+
+if(supabaseReady&&supabaseClient&&supabaseChannel){
+supabaseClient.removeChannel(supabaseChannel)
+supabaseChannel=null
+}
+
+}
+
+async function loadSupabasePhotos(){
+
+if(!supabaseReady||!supabaseClient)return
+
+let {data,error}=await supabaseClient
+.from("photos")
+.select("id,url,created_at")
+.order("created_at",{ascending:false})
+
+if(error){
+throw error
+}
+
+let html=""
+
+;(data||[]).forEach(row=>{
+if(row.url){
+html+=`<div class="card"><img src="${escapeHtml(row.url)}" class="gallery-img"><button onclick="removePhoto('supabase',${row.id}).catch(()=>{alert('사진 삭제 중 오류가 발생했어요.')})">삭제</button></div>`
+}
+})
+
+document.getElementById("photoList").innerHTML=html
+
+if(!supabaseChannel){
+supabaseChannel=supabaseClient
+.channel("photos-changes")
+.on("postgres_changes",{
+event:"*",
+schema:"public",
+table:"photos"
+},()=>{
+loadSupabasePhotos().catch(()=>{})
+})
+.subscribe()
+}
 
 }
 
@@ -499,11 +582,7 @@ document.getElementById("birthdayList").innerHTML=html
 
 async function addPhoto(file){
 
-if(cloudReady){
-
-if(!canUseCloudinaryUpload()){
-throw new Error("cloudinary_not_configured")
-}
+if(canUseCloudinaryUpload()){
 
 let cloudName=CLOUDINARY_CONFIG.cloudName.trim()
 let uploadPreset=CLOUDINARY_CONFIG.uploadPreset.trim()
@@ -513,6 +592,7 @@ let formData=new FormData()
 formData.append("file",file)
 formData.append("upload_preset",uploadPreset)
 formData.append("folder","family-app")
+formData.append("return_delete_token","true")
 
 let uploadRes=await fetch(uploadUrl,{
 method:"POST",
@@ -525,15 +605,43 @@ throw new Error("cloudinary_upload_failed")
 
 let uploadData=await uploadRes.json()
 let url=uploadData.secure_url||uploadData.url||""
+let deleteToken=uploadData.delete_token||""
 
 if(url===""){
 throw new Error("cloudinary_url_missing")
 }
 
+if(cloudReady&&firestoreDb){
 await firestoreDb.collection("photos").add({
 url:url,
+deleteToken:deleteToken,
 createdAt:firebase.firestore.FieldValue.serverTimestamp()
 })
+}else if(supabaseReady&&supabaseClient){
+let {error}=await supabaseClient
+.from("photos")
+.insert({
+url:url,
+delete_token:deleteToken||null
+})
+
+if(error){
+throw new Error("supabase_insert_failed")
+}
+}else{
+let cloudList=JSON.parse(localStorage.getItem("cloudinaryPhotos")||"[]")
+cloudList.unshift({
+url:url,
+deleteToken:deleteToken
+})
+
+try{
+localStorage.setItem("cloudinaryPhotos",JSON.stringify(cloudList))
+}catch(e){
+alert("저장 공간이 부족해서 사진 링크를 저장하지 못했어요.")
+return
+}
+}
 
 return
 
@@ -555,7 +663,7 @@ alert("저장 공간이 부족해서 사진을 저장하지 못했어요.")
 return
 }
 
-loadPhotos()
+loadPhotos().catch(()=>{})
 
 }
 
@@ -563,13 +671,151 @@ reader.readAsDataURL(file)
 
 }
 
-function loadPhotos(){
+async function deleteCloudinaryOriginal(deleteToken){
+
+if(typeof deleteToken!=="string"||deleteToken.trim()===""){
+return {
+attempted:false,
+ok:false,
+message:"삭제 토큰이 없어 원본 삭제를 건너뛰었습니다."
+}
+}
+
+if(!canUseCloudinaryUpload()){
+return {
+attempted:false,
+ok:false,
+message:"Cloudinary 설정이 없어 원본 삭제를 건너뛰었습니다."
+}
+}
+
+let cloudName=CLOUDINARY_CONFIG.cloudName.trim()
+let deleteUrl=`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/delete_by_token`
+let formData=new FormData()
+formData.append("token",deleteToken.trim())
+
+try{
+let response=await fetch(deleteUrl,{
+method:"POST",
+body:formData
+})
+
+if(!response.ok){
+let errorMessage=`HTTP ${response.status}`
+try{
+let errorData=await response.json()
+if(errorData&&errorData.error&&errorData.error.message){
+errorMessage=errorData.error.message
+}
+}catch(e){
+}
+
+return {
+attempted:true,
+ok:false,
+message:errorMessage
+}
+}
+
+let resultData={}
+try{
+resultData=await response.json()
+}catch(e){
+}
+
+if(resultData&&resultData.result&&resultData.result!=="ok"){
+return {
+attempted:true,
+ok:false,
+message:String(resultData.result)
+}
+}
+
+return {
+attempted:true,
+ok:true,
+message:""
+}
+}catch(e){
+return {
+attempted:true,
+ok:false,
+message:"네트워크 오류"
+}
+}
+
+}
+
+async function removePhoto(mode,key){
+
+let ok=confirm("이 사진을 삭제할까요?")
+if(!ok)return
+
+if(mode==="firebase"){
+if(!cloudReady||!firestoreDb)return
+let docRef=firestoreDb.collection("photos").doc(key)
+let doc=await docRef.get()
+let data=doc.exists?doc.data():null
+let cloudinaryDeleteResult=await deleteCloudinaryOriginal((data&&data.deleteToken)||"")
+if(cloudinaryDeleteResult.attempted&&!cloudinaryDeleteResult.ok){
+alert(`Cloudinary 원본 삭제 실패: ${cloudinaryDeleteResult.message}`)
+}
+await docRef.delete()
+return
+}
+
+if(mode==="supabase"){
+if(!supabaseReady||!supabaseClient)return
+let {data:photoRow}=await supabaseClient
+.from("photos")
+.select("delete_token")
+.eq("id",key)
+.maybeSingle()
+
+let cloudinaryDeleteResult=await deleteCloudinaryOriginal((photoRow&&photoRow.delete_token)||"")
+if(cloudinaryDeleteResult.attempted&&!cloudinaryDeleteResult.ok){
+alert(`Cloudinary 원본 삭제 실패: ${cloudinaryDeleteResult.message}`)
+}
+
+let {error}=await supabaseClient
+.from("photos")
+.delete()
+.eq("id",key)
+
+if(error){
+throw new Error("supabase_delete_failed")
+}
+return
+}
+
+if(mode==="cloudinary-local"){
+let list=JSON.parse(localStorage.getItem("cloudinaryPhotos")||"[]")
+let item=list[key]
+let deleteToken=typeof item==="string"?"":((item&&item.deleteToken)||"")
+let cloudinaryDeleteResult=await deleteCloudinaryOriginal(deleteToken)
+if(cloudinaryDeleteResult.attempted&&!cloudinaryDeleteResult.ok){
+alert(`Cloudinary 원본 삭제 실패: ${cloudinaryDeleteResult.message}`)
+}
+list.splice(key,1)
+localStorage.setItem("cloudinaryPhotos",JSON.stringify(list))
+await loadPhotos()
+return
+}
+
+if(mode==="local"){
+let list=JSON.parse(localStorage.getItem("photos")||"[]")
+list.splice(key,1)
+localStorage.setItem("photos",JSON.stringify(list))
+await loadPhotos()
+}
+
+}
+
+async function loadPhotos(){
+
+cleanupPhotoSubscriptions()
 
 if(cloudReady){
-
-if(photoUnsubscribe){
-photoUnsubscribe()
-}
 
 photoUnsubscribe=firestoreDb.collection("photos")
 .orderBy("createdAt","desc")
@@ -580,7 +826,7 @@ let html=""
 snapshot.forEach(doc=>{
 let data=doc.data()
 if(data.url){
-html+=`<div class="card"><img src="${data.url}" class="gallery-img"></div>`
+html+=`<div class="card"><img src="${escapeHtml(data.url)}" class="gallery-img"><button onclick="removePhoto('firebase','${doc.id}').catch(()=>{alert('사진 삭제 중 오류가 발생했어요.')})">삭제</button></div>`
 }
 })
 
@@ -592,12 +838,36 @@ return
 
 }
 
+if(supabaseReady&&supabaseClient){
+await loadSupabasePhotos()
+return
+}
+
+if(canUseCloudinaryUpload()){
+
+let cloudList=JSON.parse(localStorage.getItem("cloudinaryPhotos")||"[]")
+
+let cloudHtml=""
+
+cloudList.forEach((item,index)=>{
+let url=typeof item==="string"?item:((item&&item.url)||"")
+if(url!=""){
+cloudHtml+=`<div class="card"><img src="${escapeHtml(url)}" class="gallery-img"><button onclick="removePhoto('cloudinary-local',${index}).catch(()=>{alert('사진 삭제 중 오류가 발생했어요.')})">삭제</button></div>`
+}
+})
+
+document.getElementById("photoList").innerHTML=cloudHtml
+
+return
+
+}
+
 let list=JSON.parse(localStorage.getItem("photos")||"[]")
 
 let html=""
 
-list.forEach(src=>{
-html+=`<div class="card"><img src="${src}" class="gallery-img"></div>`
+list.forEach((src,index)=>{
+html+=`<div class="card"><img src="${src}" class="gallery-img"><button onclick="removePhoto('local',${index}).catch(()=>{alert('사진 삭제 중 오류가 발생했어요.')})">삭제</button></div>`
 })
 
 document.getElementById("photoList").innerHTML=html
@@ -629,10 +899,6 @@ return
 
 addPhoto(file)
 .catch(error=>{
-if(error&&error.message==="cloudinary_not_configured"){
-alert("Cloudinary 설정이 없어 사진 공유 업로드를 사용할 수 없어요.")
-return
-}
 alert("사진 업로드 중 오류가 발생했어요.")
 })
 .finally(()=>{
@@ -690,12 +956,12 @@ loadVerse()
 loadPray()
 loadSchedule()
 loadBirthday()
-initFirebase()
-.catch(()=>{
-alert("클라우드 연결에 실패해 로컬 저장 모드로 동작합니다.")
-})
+Promise.allSettled([
+initFirebase(),
+initSupabase()
+])
 .finally(()=>{
-loadPhotos()
+loadPhotos().catch(()=>{})
 })
 setupPhotoUpload()
 
