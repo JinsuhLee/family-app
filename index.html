@@ -592,7 +592,6 @@ let formData=new FormData()
 formData.append("file",file)
 formData.append("upload_preset",uploadPreset)
 formData.append("folder","family-app")
-formData.append("return_delete_token","true")
 
 let uploadRes=await fetch(uploadUrl,{
 method:"POST",
