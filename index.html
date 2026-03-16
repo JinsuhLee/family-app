@@ -109,13 +109,13 @@ bottom:0;
 width:100%;
 background:white;
 display:flex;
-justify-content:flex-start;
-gap:17px;
-padding:10px 8px;
+justify-content:space-between;
+gap:0;
+padding:10px 6px;
 box-sizing:border-box;
-overflow-x:auto;
+overflow-x:hidden;
 overflow-y:hidden;
-white-space:nowrap;
+white-space:normal;
 -webkit-overflow-scrolling:touch;
 box-shadow:0 -2px 8px rgba(0,0,0,0.2);
 }
@@ -131,22 +131,22 @@ scrollbar-width:none;
 
 .navbtn{
 font-size:28px;
-padding:8px 16px;
+padding:8px 0;
 margin:0;
-flex:0 0 auto;
+flex:1 1 20%;
+min-width:0;
 background:none;
 border:none;
 }
 
 @media (max-width:380px){
 .navbar{
-gap:10px;
 padding:8px 6px;
 }
 
 .navbtn{
 font-size:24px;
-padding:6px 14px;
+padding:6px 0;
 }
 }
 
