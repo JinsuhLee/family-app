@@ -921,7 +921,9 @@ if(!res.ok) throw new Error("network error")
 
 let data=await res.json()
 
-let today=new Date().toISOString().slice(0,10)
+let today=new Intl.DateTimeFormat("sv-SE",{
+timeZone:"Asia/Seoul"
+}).format(new Date())
 
 let verse=""
 
