@@ -3,19 +3,32 @@ function loadRemoteSchedule() {
         .then(response => response.json())
         .then(data => {
             const scheduleList = document.getElementById('scheduleList');
-            if (data.length > 0) {
-                scheduleList.innerHTML = '';
+            if (!scheduleList) return;
+            let html = '';
+            if (Array.isArray(data) && data.length > 0) {
                 data.forEach(schedule => {
-                    // Assuming schedule has properties title and date
-                    const card = `<div class='card'>${schedule.title} - ${schedule.date}</div>`;
-                    scheduleList.innerHTML += card;
+                    html += `<div class='card'>
+                        <b>${schedule.date || ''} ${schedule.time || ''}</b><br>
+                        ${schedule.plan || ''}
+                    </div>`;
                 });
-            } else {
-                scheduleList.innerHTML = '<div class="card">일정 없음</div>';
             }
+            if (!html) html = "<div class='card'>일정 없음</div>";
+            scheduleList.innerHTML = html;
         })
         .catch(() => {
             const scheduleList = document.getElementById('scheduleList');
-            scheduleList.innerHTML = '<div class="card">일정 없음</div>';
+            if (scheduleList)
+                scheduleList.innerHTML = "<div class='card'>일정 없음</div>";
         });
+}
+
+function showPage(page){
+    document.querySelectorAll('.page').forEach(p => {
+        p.classList.remove('active');
+    });
+    document.getElementById(page).classList.add('active');
+    if (page === 'schedule') {
+        loadRemoteSchedule();
+    }
 }
