@@ -1,3 +1,5 @@
-firebase-config.example.js
-cloudinary-config.example.js
-supabase-config.example.js
+firebase-config.js
+cloudinary-config.js
+supabase-config.js
+.env
+node_modules/
