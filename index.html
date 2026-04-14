@@ -392,23 +392,6 @@ photoUnsubscribe=null
 if(supabaseReady&&supabaseClient&&supabaseChannel){
 supabaseClient.removeChannel(supabaseChannel)
 supabaseChannel=null
-async function loadRemoteSchedule(){
-  try{
-    const url = "https://sheetdb.io/api/v1/x97irced8j3de";
-    let res = await fetch(url);
-    if(!res.ok) throw new Error("network error");
-    let data = await res.json();
-    let html = "";
-    (data||[]).forEach(row=>{
-      if(row.schedule){
-        html += `<div class=\"card\">${escapeHtml(row.schedule)}</div>`;
-      }
-    });
-    document.getElementById("scheduleList").innerHTML = html;
-  }catch(e){
-    // fallback: local storage 일정 사용
-    loadSchedule();
-  }
 }
 
 }
@@ -554,41 +537,7 @@ document.getElementById("scheduleList").innerHTML=html
 
 }
 
-function loadRemoteSchedule() {
-    fetch('https://sheetdb.io/api/v1/x97irced8j3de')
-        .then(response => response.json())
-        .then(data => {
-            const scheduleList = document.getElementById('scheduleList');
-            if (!scheduleList) return;
-            let html = '';
-            if (Array.isArray(data) && data.length > 0) {
-                data.forEach(schedule => {
-                    html += `<div class='card'>
-                        <b>${schedule.date || ''} ${schedule.time || ''}</b><br>
-                        ${schedule.plan || ''}
-                    </div>`;
-                });
-            }
-            if (!html) html = "<div class='card'>일정 없음</div>";
-            scheduleList.innerHTML = html;
-        })
-        .catch(() => {
-            const scheduleList = document.getElementById('scheduleList');
-            if (scheduleList)
-                scheduleList.innerHTML = "<div class='card'>일정 없음</div>";
-        });
-}
 
-function showPage(page){
-    document.querySelectorAll('.page').forEach(p => {
-        p.classList.remove('active');
-    });
-    document.getElementById(page).classList.add('active');
-    if (page === 'schedule') {
-        loadRemoteSchedule();
-    }
-}
-  
 /* 생일 */
 
 function addBirthday(){
