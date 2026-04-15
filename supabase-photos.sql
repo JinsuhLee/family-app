@@ -17,13 +17,8 @@ for select
 using (true);
 
 drop policy if exists "allow insert photos" on public.photos;
-create policy "allow insert photos"
-on public.photos
-for insert
-with check (true);
-
 drop policy if exists "allow delete photos" on public.photos;
-create policy "allow delete photos"
-on public.photos
-for delete
-using (true);
+
+-- GitHub Pages 공개 배포 기본값은 읽기 전용입니다.
+-- insert/delete 정책은 추가하지 않습니다.
+-- 쓰기 기능이 필요하면 인증 또는 서버 서명 방식을 먼저 붙인 뒤 별도 정책을 설계하세요.

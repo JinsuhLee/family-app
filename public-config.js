@@ -1,0 +1,15 @@
+window.PUBLIC_APP_CONFIG={
+  supabase:{
+    url:"https://qmjqmsujkdjfwzbavfnn.supabase.co",
+    anonKey:"sb_publishable_itK_8RzkqaH_K5_KRiIq_Q_SPm_DDJC"
+  },
+  photos:{
+    enableSharedGallery:true,
+    readOnly:true,
+    allowDirectUpload:false
+  },
+  cloudinary:{
+    cloudName:"",
+    uploadPreset:""
+  }
+}

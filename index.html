@@ -279,6 +279,8 @@ margin:0 auto;
 
 <input id="photoInput" class="photo-input" type="file" accept="image/*">
 
+<div id="photoStatus" style="margin-top:12px;font-size:16px;color:#666;"></div>
+
 </div>
 
 <div id="photoList"></div>
@@ -303,80 +305,73 @@ margin:0 auto;
 </div>
 
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="public-config.js"></script>
 
 <script>
 
-let FIREBASE_CONFIG={}
-let CLOUDINARY_CONFIG={}
-let SUPABASE_CONFIG={}
+const PUBLIC_APP_CONFIG=window.PUBLIC_APP_CONFIG||{}
+const CLOUDINARY_CONFIG=PUBLIC_APP_CONFIG.cloudinary||{}
+const SUPABASE_CONFIG=PUBLIC_APP_CONFIG.supabase||{}
+const PHOTO_CONFIG=PUBLIC_APP_CONFIG.photos||{}
 
-let cloudReady=false
-let firestoreDb=null
-let photoUnsubscribe=null
 let supabaseReady=false
 let supabaseClient=null
 let supabaseChannel=null
-
-function loadOptionalScript(src){
-
-return new Promise(resolve=>{
-let script=document.createElement("script")
-script.src=src
-script.onload=()=>resolve(true)
-script.onerror=()=>resolve(false)
-document.head.appendChild(script)
-})
-
-}
-
-async function loadLocalConfigs(){
-
-await Promise.all([
-loadOptionalScript("firebase-config.js"),
-loadOptionalScript("cloudinary-config.js"),
-loadOptionalScript("supabase-config.js")
-])
-
-FIREBASE_CONFIG=window.FIREBASE_CONFIG||{}
-CLOUDINARY_CONFIG=window.CLOUDINARY_CONFIG||{}
-SUPABASE_CONFIG=window.SUPABASE_CONFIG||{}
-
-}
-
-async function initFirebase(){
-
-const requiredKeys=["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"]
-const configOk=requiredKeys.every(key=>{
-let value=FIREBASE_CONFIG[key]
-return typeof value==="string"&&value.trim()!==""
-})
-
-if(!configOk)return
-
-if(firebase.apps.length===0){
-firebase.initializeApp(FIREBASE_CONFIG)
-}
-
-await firebase.auth().signInAnonymously()
-
-firestoreDb=firebase.firestore()
-cloudReady=true
-
-}
 
 function canUseCloudinaryUpload(){
 
 let cloudName=CLOUDINARY_CONFIG.cloudName
 let uploadPreset=CLOUDINARY_CONFIG.uploadPreset
 
-return typeof cloudName==="string"
+return PHOTO_CONFIG.allowDirectUpload===true
+&&typeof cloudName==="string"
 &&cloudName.trim()!==""
 &&typeof uploadPreset==="string"
 &&uploadPreset.trim()!==""
+
+}
+
+function isSharedGalleryEnabled(){
+
+return PHOTO_CONFIG.enableSharedGallery!==false
+
+}
+
+function isSharedGalleryReadOnly(){
+
+return PHOTO_CONFIG.readOnly!==false
+
+}
+
+function canManageSharedPhotos(){
+
+return isSharedGalleryEnabled()
+&&canUseSupabase()
+&&canUseCloudinaryUpload()
+&&isSharedGalleryReadOnly()===false
+
+}
+
+function updatePhotoStatus(){
+
+let input=document.getElementById("photoInput")
+let status=document.getElementById("photoStatus")
+
+if(isSharedGalleryEnabled()&&canUseSupabase()){
+if(canManageSharedPhotos()){
+input.disabled=false
+status.innerText="공유 사진 업로드가 활성화되어 있습니다."
+return
+}
+
+input.disabled=true
+status.innerText="GitHub Pages 공개 배포용 안전 모드입니다. 사진 목록은 읽기 전용으로 표시됩니다."
+return
+}
+
+input.disabled=false
+status.innerText="현재 기기에서만 로컬 사진 저장을 사용할 수 있습니다."
 
 }
 
@@ -407,11 +402,6 @@ supabaseReady=true
 
 function cleanupPhotoSubscriptions(){
 
-if(photoUnsubscribe){
-photoUnsubscribe()
-photoUnsubscribe=null
-}
-
 if(supabaseReady&&supabaseClient&&supabaseChannel){
 supabaseClient.removeChannel(supabaseChannel)
 supabaseChannel=null
@@ -436,7 +426,7 @@ let html=""
 
 ;(data||[]).forEach(row=>{
 if(row.url){
-html+=`<div class="card"><img src="${escapeHtml(row.url)}" class="gallery-img"><button onclick="removePhoto('supabase',${row.id}).catch(()=>{alert('사진 삭제 중 오류가 발생했어요.')})">삭제</button></div>`
+html+=`<div class="card"><img src="${escapeHtml(row.url)}" class="gallery-img">${canManageSharedPhotos()?`<button onclick="removePhoto('supabase',${row.id}).catch(()=>{alert('사진 삭제 중 오류가 발생했어요.')})">삭제</button>`:""}</div>`
 }
 })
 
@@ -605,7 +595,7 @@ document.getElementById("birthdayList").innerHTML=html
 
 async function addPhoto(file){
 
-if(canUseCloudinaryUpload()){
+if(canManageSharedPhotos()){
 
 let cloudName=CLOUDINARY_CONFIG.cloudName.trim()
 let uploadPreset=CLOUDINARY_CONFIG.uploadPreset.trim()
@@ -633,13 +623,7 @@ if(url===""){
 throw new Error("cloudinary_url_missing")
 }
 
-if(cloudReady&&firestoreDb){
-await firestoreDb.collection("photos").add({
-url:url,
-deleteToken:deleteToken,
-createdAt:firebase.firestore.FieldValue.serverTimestamp()
-})
-}else if(supabaseReady&&supabaseClient){
+if(supabaseReady&&supabaseClient){
 let {error}=await supabaseClient
 .from("photos")
 .insert({
@@ -667,6 +651,10 @@ return
 
 return
 
+}
+
+if(isSharedGalleryEnabled()&&canUseSupabase()){
+throw new Error("shared_gallery_read_only")
 }
 
 let reader=new FileReader()
@@ -773,20 +761,10 @@ async function removePhoto(mode,key){
 let ok=confirm("이 사진을 삭제할까요?")
 if(!ok)return
 
-if(mode==="firebase"){
-if(!cloudReady||!firestoreDb)return
-let docRef=firestoreDb.collection("photos").doc(key)
-let doc=await docRef.get()
-let data=doc.exists?doc.data():null
-let cloudinaryDeleteResult=await deleteCloudinaryOriginal((data&&data.deleteToken)||"")
-if(cloudinaryDeleteResult.attempted&&!cloudinaryDeleteResult.ok){
-alert(`Cloudinary 원본 삭제 실패: ${cloudinaryDeleteResult.message}`)
-}
-await docRef.delete()
-return
-}
-
 if(mode==="supabase"){
+if(!canManageSharedPhotos()){
+throw new Error("shared_gallery_read_only")
+}
 if(!supabaseReady||!supabaseClient)return
 let {data:photoRow}=await supabaseClient
 .from("photos")
@@ -836,29 +814,6 @@ await loadPhotos()
 async function loadPhotos(){
 
 cleanupPhotoSubscriptions()
-
-if(cloudReady){
-
-photoUnsubscribe=firestoreDb.collection("photos")
-.orderBy("createdAt","desc")
-.onSnapshot(snapshot=>{
-
-let html=""
-
-snapshot.forEach(doc=>{
-let data=doc.data()
-if(data.url){
-html+=`<div class="card"><img src="${escapeHtml(data.url)}" class="gallery-img"><button onclick="removePhoto('firebase','${doc.id}').catch(()=>{alert('사진 삭제 중 오류가 발생했어요.')})">삭제</button></div>`
-}
-})
-
-document.getElementById("photoList").innerHTML=html
-
-})
-
-return
-
-}
 
 if(supabaseReady&&supabaseClient){
 await loadSupabasePhotos()
@@ -921,6 +876,10 @@ return
 
 addPhoto(file)
 .catch(error=>{
+if(error&&error.message==="shared_gallery_read_only"){
+alert("공개 배포 안전 모드에서는 사진 업로드가 비활성화되어 있어요.")
+return
+}
 alert("사진 업로드 중 오류가 발생했어요.")
 })
 .finally(()=>{
@@ -980,16 +939,13 @@ loadVerse()
 loadPray()
 loadSchedule()
 loadBirthday()
-loadLocalConfigs()
-.finally(()=>{
+updatePhotoStatus()
 Promise.allSettled([
-initFirebase(),
 initSupabase()
 ])
 .finally(()=>{
 loadPhotos().catch(()=>{})
 setupPhotoUpload()
-})
 })
 
 
