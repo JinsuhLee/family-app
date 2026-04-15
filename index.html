@@ -569,14 +569,14 @@ let fieldMap=SCHEDULE_CONFIG.fields
 if(!fieldMap||typeof fieldMap!=="object"){
 return {
 date:"date",
-title:"title",
+time:"time",
 detail:"detail"
 }
 }
 
 return {
 date:typeof fieldMap.date==="string"&&fieldMap.date.trim()!==""?fieldMap.date.trim():"date",
-title:typeof fieldMap.title==="string"&&fieldMap.title.trim()!==""?fieldMap.title.trim():"title",
+time:typeof fieldMap.time==="string"&&fieldMap.time.trim()!==""?fieldMap.time.trim():"time",
 detail:typeof fieldMap.detail==="string"&&fieldMap.detail.trim()!==""?fieldMap.detail.trim():"detail"
 }
 
@@ -623,15 +623,15 @@ lines.push(item.trim())
 }
 }else if(item&&typeof item==="object"){
 let dateValue=item[fieldMap.date]
-let titleValue=item[fieldMap.title]
+let timeValue=item[fieldMap.time]
 let detailValue=item[fieldMap.detail]
 
 if(typeof dateValue==="string"&&dateValue.trim()!==""){
 lines.push(dateValue.trim())
 }
 
-if(typeof titleValue==="string"&&titleValue.trim()!==""){
-lines.push(titleValue.trim())
+if(typeof timeValue==="string"&&timeValue.trim()!==""){
+lines.push(timeValue.trim())
 }
 
 if(typeof detailValue==="string"&&detailValue.trim()!==""){
