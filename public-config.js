@@ -12,7 +12,7 @@ window.PUBLIC_APP_CONFIG={
     sheetUrl:"https://sheetdb.io/api/v1/x97irced8j3de",
     fields:{
       date:"date",
-      title:"time",
+      time:"time",
       detail:"detail"
     }
   },
