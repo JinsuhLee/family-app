@@ -8,6 +8,21 @@ window.PUBLIC_APP_CONFIG={
     readOnly:true,
     allowDirectUpload:false
   },
+  schedule:{
+    sheetUrl:"https://sheetdb.io/api/v1/x97irced8j3de",
+    fields:{
+      date:"date",
+      title:"title",
+      detail:"detail"
+    }
+  },
+  verse:{
+    sheetUrl:"https://sheetdb.io/api/v1/0z7it7x68y6xl",
+    fields:{
+      date:"date",
+      text:"verse"
+    }
+  },
   cloudinary:{
     cloudName:"",
     uploadPreset:""

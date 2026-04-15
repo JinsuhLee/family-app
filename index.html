@@ -314,6 +314,8 @@ const PUBLIC_APP_CONFIG=window.PUBLIC_APP_CONFIG||{}
 const CLOUDINARY_CONFIG=PUBLIC_APP_CONFIG.cloudinary||{}
 const SUPABASE_CONFIG=PUBLIC_APP_CONFIG.supabase||{}
 const PHOTO_CONFIG=PUBLIC_APP_CONFIG.photos||{}
+const SCHEDULE_CONFIG=PUBLIC_APP_CONFIG.schedule||{}
+const VERSE_CONFIG=PUBLIC_APP_CONFIG.verse||{}
 
 let supabaseReady=false
 let supabaseClient=null
@@ -457,6 +459,10 @@ p.classList.remove("active")
 
 document.getElementById(page).classList.add("active")
 
+if(page==="schedule"){
+loadSchedule().catch(()=>{})
+}
+
 }
 
 
@@ -532,21 +538,142 @@ return
 
 document.getElementById("scheduleInput").value=""
 
-loadSchedule()
+loadSchedule().catch(()=>{})
 
 }
 
-function loadSchedule(){
+function getScheduleSheetUrl(){
 
-let list=JSON.parse(localStorage.getItem("schedule")||"[]")
+let url=SCHEDULE_CONFIG.sheetUrl
+
+return typeof url==="string"&&url.trim()!==""
+?url.trim()
+:""
+
+}
+
+function getVerseSheetUrl(){
+
+let url=VERSE_CONFIG.sheetUrl
+
+return typeof url==="string"&&url.trim()!==""
+?url.trim()
+:""
+
+}
+
+function getScheduleFieldMap(){
+
+let fieldMap=SCHEDULE_CONFIG.fields
+
+if(!fieldMap||typeof fieldMap!=="object"){
+return {
+date:"date",
+title:"title",
+detail:"detail"
+}
+}
+
+return {
+date:typeof fieldMap.date==="string"&&fieldMap.date.trim()!==""?fieldMap.date.trim():"date",
+title:typeof fieldMap.title==="string"&&fieldMap.title.trim()!==""?fieldMap.title.trim():"title",
+detail:typeof fieldMap.detail==="string"&&fieldMap.detail.trim()!==""?fieldMap.detail.trim():"detail"
+}
+
+}
+
+function getVerseFieldMap(){
+
+let fieldMap=VERSE_CONFIG.fields
+
+if(!fieldMap||typeof fieldMap!=="object"){
+return {
+date:"date",
+text:"verse"
+}
+}
+
+return {
+date:typeof fieldMap.date==="string"&&fieldMap.date.trim()!==""?fieldMap.date.trim():"date",
+text:typeof fieldMap.text==="string"&&fieldMap.text.trim()!==""?fieldMap.text.trim():"verse"
+}
+
+}
+
+function getTodaySeoulDate(){
+
+return new Intl.DateTimeFormat("sv-SE",{
+timeZone:"Asia/Seoul"
+}).format(new Date())
+
+}
+
+function renderScheduleCards(items){
+
+let fieldMap=getScheduleFieldMap()
 
 let html=""
 
-list.forEach(i=>{
-html+=`<div class="card">${escapeHtml(i)}</div>`
+items.forEach(item=>{
+let lines=[]
+
+if(typeof item==="string"){
+if(item.trim()!==""){
+lines.push(item.trim())
+}
+}else if(item&&typeof item==="object"){
+let dateValue=item[fieldMap.date]
+let titleValue=item[fieldMap.title]
+let detailValue=item[fieldMap.detail]
+
+if(typeof dateValue==="string"&&dateValue.trim()!==""){
+lines.push(dateValue.trim())
+}
+
+if(typeof titleValue==="string"&&titleValue.trim()!==""){
+lines.push(titleValue.trim())
+}
+
+if(typeof detailValue==="string"&&detailValue.trim()!==""){
+lines.push(detailValue.trim())
+}
+}
+
+if(lines.length>0){
+html+=`<div class="card">${lines.map(line=>escapeHtml(line)).join("<br>")}</div>`
+}
 })
 
-document.getElementById("scheduleList").innerHTML=html
+return html
+
+}
+
+async function loadSchedule(){
+
+let localList=JSON.parse(localStorage.getItem("schedule")||"[]")
+let sheetUrl=getScheduleSheetUrl()
+
+if(sheetUrl===""){
+document.getElementById("scheduleList").innerHTML=renderScheduleCards(localList)
+return
+}
+
+try{
+let res=await fetch(sheetUrl)
+
+if(!res.ok){
+throw new Error("network_error")
+}
+
+let remoteList=await res.json()
+let normalizedList=Array.isArray(remoteList)?remoteList:[]
+let mergedList=normalizedList.concat(localList)
+let html=renderScheduleCards(mergedList)
+
+document.getElementById("scheduleList").innerHTML=html||'<div class="card">일정이 없어요.</div>'
+}catch(e){
+document.getElementById("scheduleList").innerHTML=renderScheduleCards(localList)||'<div class="card">일정을 불러올 수 없어요.</div>'
+}
 
 }
 
@@ -894,7 +1021,12 @@ async function loadVerse(){
 
 try{
 
-const url="https://sheetdb.io/api/v1/0z7it7x68y6xl"
+const url=getVerseSheetUrl()
+const fieldMap=getVerseFieldMap()
+
+if(url===""){
+throw new Error("missing_sheet_url")
+}
 
 let res=await fetch(url)
 
@@ -902,17 +1034,15 @@ if(!res.ok) throw new Error("network error")
 
 let data=await res.json()
 
-let today=new Intl.DateTimeFormat("sv-SE",{
-timeZone:"Asia/Seoul"
-}).format(new Date())
+let today=getTodaySeoulDate()
 
 let verse=""
 
 data.forEach(row=>{
 
-if(row.date==today){
+if(row&&row[fieldMap.date]==today){
 
-verse=row.verse
+verse=row[fieldMap.text]
 
 }
 
@@ -920,7 +1050,7 @@ verse=row.verse
 
 if(verse==""){
 
-verse=data[0]?.verse||""
+verse=data[0]?.[fieldMap.text]||""
 
 }
 

@@ -38,6 +38,21 @@ window.PUBLIC_APP_CONFIG={
 		readOnly:true,
 		allowDirectUpload:false
 	},
+	schedule:{
+		sheetUrl:"https://sheetdb.io/api/v1/YOUR_SHEET_ID",
+		fields:{
+			date:"date",
+			title:"title",
+			detail:"detail"
+		}
+	},
+	verse:{
+		sheetUrl:"https://sheetdb.io/api/v1/YOUR_VERSE_SHEET_ID",
+		fields:{
+			date:"date",
+			text:"verse"
+		}
+	},
 	cloudinary:{
 		cloudName:"",
 		uploadPreset:""
@@ -50,6 +65,35 @@ window.PUBLIC_APP_CONFIG={
 - `supabase`: 공개 가능한 프로젝트 URL / publishable key
 - `readOnly:true`: 공유 사진 목록은 누구나 조회만 가능
 - `allowDirectUpload:false`: 브라우저에서 직접 업로드 비활성화
+- `schedule.sheetUrl`: 일정 탭 클릭 시 불러올 SheetDB API 주소
+- `schedule.fields`: 일정 데이터 컬럼명 매핑
+- `verse.sheetUrl`: 홈 화면 말씀을 불러올 SheetDB API 주소
+- `verse.fields`: 말씀 데이터 컬럼명 매핑
+
+권장 SheetDB 응답 형식:
+
+일정 시트:
+
+```json
+[
+	{
+		"date": "2026-04-15",
+		"title": "가족 저녁식사",
+		"detail": "오후 7시"
+	}
+]
+```
+
+말씀 시트:
+
+```json
+[
+	{
+		"date": "2026-04-15",
+		"verse": "항상 기뻐하라 쉬지 말고 기도하라 범사에 감사하라"
+	}
+]
+```
 
 ## Supabase 설정
 
