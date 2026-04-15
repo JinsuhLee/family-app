@@ -32,6 +32,8 @@ window.CLOUDINARY_CONFIG={
 
 주의: 이 모드에서는 이미지 파일은 Cloudinary에 올라가지만, 앱의 사진 목록(순서/목록 데이터)은 기기별 `localStorage`에 저장됩니다.
 
+보안: `cloudinary-config.js`는 로컬 전용 파일로 두고 Git에 커밋하지 마세요.
+
 ## Firebase 없이 무료 기기 간 사진 목록 동기화(Cloudinary + Supabase)
 
 1. 위 Cloudinary 설정을 먼저 완료
@@ -57,6 +59,8 @@ window.SUPABASE_CONFIG={
 
 주의: Cloudinary 원본 삭제는 `delete_token` 유효시간 안에서만 동작합니다(보통 업로드 직후 짧은 시간). 시간이 지난 사진은 앱 목록에서만 제거될 수 있습니다.
 
+보안: `supabase-config.js`는 로컬 전용 파일로 두고 Git에 커밋하지 마세요.
+
 이미 Supabase를 먼저 구성했다면 `supabase-photos.sql`을 다시 실행해 `delete_token` 컬럼/삭제 정책(`allow delete photos`)을 반영하세요.
 
 ## Firebase 공유 사진 설정
@@ -78,6 +82,8 @@ window.FIREBASE_CONFIG={
 ```
 
 `firebase-config.js`는 `.gitignore`에 포함되어 GitHub에 올라가지 않습니다.
+
+보안: 실제 설정 파일은 `*.example.js`가 아니라 `*-config.js` 파일들입니다. 예시 파일만 저장소에 두고, 실제 값은 로컬 파일에만 보관하세요.
 
 ## 권장 보안 규칙(개발용)
 

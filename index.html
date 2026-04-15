@@ -307,15 +307,12 @@ margin:0 auto;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="firebase-config.js"></script>
-<script src="cloudinary-config.js"></script>
-<script src="supabase-config.js"></script>
 
 <script>
 
-const FIREBASE_CONFIG=window.FIREBASE_CONFIG||{}
-const CLOUDINARY_CONFIG=window.CLOUDINARY_CONFIG||{}
-const SUPABASE_CONFIG=window.SUPABASE_CONFIG||{}
+let FIREBASE_CONFIG={}
+let CLOUDINARY_CONFIG={}
+let SUPABASE_CONFIG={}
 
 let cloudReady=false
 let firestoreDb=null
@@ -323,6 +320,32 @@ let photoUnsubscribe=null
 let supabaseReady=false
 let supabaseClient=null
 let supabaseChannel=null
+
+function loadOptionalScript(src){
+
+return new Promise(resolve=>{
+let script=document.createElement("script")
+script.src=src
+script.onload=()=>resolve(true)
+script.onerror=()=>resolve(false)
+document.head.appendChild(script)
+})
+
+}
+
+async function loadLocalConfigs(){
+
+await Promise.all([
+loadOptionalScript("firebase-config.js"),
+loadOptionalScript("cloudinary-config.js"),
+loadOptionalScript("supabase-config.js")
+])
+
+FIREBASE_CONFIG=window.FIREBASE_CONFIG||{}
+CLOUDINARY_CONFIG=window.CLOUDINARY_CONFIG||{}
+SUPABASE_CONFIG=window.SUPABASE_CONFIG||{}
+
+}
 
 async function initFirebase(){
 
@@ -957,14 +980,17 @@ loadVerse()
 loadPray()
 loadSchedule()
 loadBirthday()
+loadLocalConfigs()
+.finally(()=>{
 Promise.allSettled([
 initFirebase(),
 initSupabase()
 ])
 .finally(()=>{
 loadPhotos().catch(()=>{})
-})
 setupPhotoUpload()
+})
+})
 
 
 /* PWA */

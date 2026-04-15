@@ -1,1 +1,0 @@
-window.FIREBASE_CONFIG={}
