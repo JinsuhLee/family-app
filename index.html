@@ -684,49 +684,6 @@ document.getElementById("scheduleList").innerHTML=renderScheduleCards(localList)
 }
 
 
-/* 생일 */
-
-function addBirthday(){
-
-let text=document.getElementById("birthdayInput").value.trim()
-
-if(text==="")return
-
-let list=JSON.parse(localStorage.getItem("birthday")||"[]")
-
-list.push(text)
-
-try{
-localStorage.setItem("birthday",JSON.stringify(list))
-}catch(e){
-alert("저장 공간이 부족해서 저장하지 못했어요.")
-return
-}
-
-document.getElementById("birthdayInput").value=""
-
-loadBirthday()
-
-}
-
-function loadBirthday(){
-
-let listEl=document.getElementById("birthdayList")
-if(!listEl)return
-
-let list=JSON.parse(localStorage.getItem("birthday")||"[]")
-
-let html=""
-
-list.forEach(i=>{
-html+=`<div class="card">${escapeHtml(i)}</div>`
-})
-
-listEl.innerHTML=html
-
-}
-
-
 /* 사진 */
 
 async function addPhoto(file){
@@ -1077,7 +1034,6 @@ loadVerse()
 
 loadPray()
 loadSchedule()
-loadBirthday()
 updatePhotoStatus()
 Promise.allSettled([
 initSupabase()
