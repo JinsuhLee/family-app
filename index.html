@@ -164,6 +164,14 @@ display:block;
 margin:0 auto;
 }
 
+.game-frame{
+width:100%;
+height:65vh;
+border:0;
+border-radius:16px;
+background:#000;
+}
+
 </style>
 
 </head>
@@ -244,25 +252,23 @@ margin:0 auto;
 </div>
 
 
-<!-- 생일 -->
+<!-- 게임 -->
 
-<div id="birthday" class="page">
+<div id="game" class="page">
 
 <div class="card">
 
-🎂 생일 추가
-
-<br>
-
-<input id="birthdayInput" placeholder="예: 엄마 5월10일">
-
-<br>
-
-<button onclick="addBirthday()">저장</button>
+🕹️ neon-dodge
 
 </div>
 
-<div id="birthdayList"></div>
+<iframe
+class="game-frame"
+title="neon-dodge game"
+src="https://jinsuhlee.github.io/neon-dodge/"
+loading="lazy"
+allow="fullscreen"
+></iframe>
 
 </div>
 
@@ -298,7 +304,7 @@ margin:0 auto;
 
 <button class="navbtn" onclick="showPage('schedule')">📅</button>
 
-<button class="navbtn" onclick="showPage('birthday')">🎂</button>
+<button class="navbtn" onclick="showPage('game')">🕹️</button>
 
 <button class="navbtn" onclick="showPage('photo')">🖼️</button>
 
@@ -705,6 +711,9 @@ loadBirthday()
 
 function loadBirthday(){
 
+let listEl=document.getElementById("birthdayList")
+if(!listEl)return
+
 let list=JSON.parse(localStorage.getItem("birthday")||"[]")
 
 let html=""
@@ -713,7 +722,7 @@ list.forEach(i=>{
 html+=`<div class="card">${escapeHtml(i)}</div>`
 })
 
-document.getElementById("birthdayList").innerHTML=html
+listEl.innerHTML=html
 
 }
 
