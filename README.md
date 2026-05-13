@@ -14,8 +14,13 @@
 - 홈
 - 기도
 - 일정
-- 생일
+- 게임(neon-dodge)
 - 사진
+
+## 게임 탭(neon-dodge)
+
+- 게임 탭은 `https://jinsuhlee.github.io/neon-dodge/` 페이지를 iframe으로 불러옵니다.
+- 동일 소유 레포지토리의 게임 페이지를 신뢰하는 전제로 동작합니다.
 
 ## 사진 기능
 
